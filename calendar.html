@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Student Calendar</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav>
+    <h2>Productivity Pro</h2>
+    <ul>
+        <li><a class="nav-link" href="home.html">Home</a></li>
+        <li><a class="nav-link" href="calendar.html">Calendar</a></li>
+        <li><a class="nav-link" href="todo.html">To-Do List</a></li>
+        <li><a class="nav-link" href="about.html">About</a></li>
+    </ul>
+    <button id="theme-toggle">🌙</button>
+</nav>
+
+<div class="calendar-container">
+    <h1>Student Event Calendar</h1>
+    <div class="month-nav">
+        <button class="nav-btn" id="prev-month">Previous</button>
+        <h2 id="monthYear"></h2>
+        <button class="nav-btn" id="next-month">Next</button>
+    </div>
+    <div class="calendar" id="calendar"></div>
+    <h2 id="selected-date-title" style="display:none;">Events on <span id="selected-date"></span></h2>
+    <form id="event-form" style="display:none;">
+        <input type="text" id="event-name" placeholder="Event name">
+        <input type="text" id="event-time" placeholder="Event time (e.g. 14:30)">
+        <button type="submit">Add Event</button>
+    </form>
+    <ul id="events"></ul>
+</div>
+
+<script>
+const themeToggle = document.getElementById("theme-toggle");
+themeToggle.addEventListener("click", function() {
+    document.body.classList.toggle("dark-theme");
+    localStorage.setItem("theme", document.body.classList.contains("dark-theme") ? "dark" : "light");
+});
+if (localStorage.getItem("theme") === "dark") {
+    document.body.classList.add("dark-theme");
+}
+document.querySelectorAll(".nav-link").forEach(function(link) {
+    if (link.href === window.location.href) {
+        link.classList.add("active");
+    }
+});
+
+const calendar = document.getElementById("calendar");
+const eventForm = document.getElementById("event-form");
+const eventsUl = document.getElementById("events");
+const selectedDateSpan = document.getElementById("selected-date");
+const selectedDateTitle = document.getElementById("selected-date-title");
+const monthYear = document.getElementById("monthYear");
+const prevMonthBtn = document.getElementById("prev-month");
+const nextMonthBtn = document.getElementById("next-month");
+const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+let currentYear, currentMonth;
+let selectedDate = null;
+
+function displayDayNames() {
+    for (let i = 0; i < dayNames.length; i++) {
+        const dayNameDiv = document.createElement("div");
+        dayNameDiv.textContent = dayNames[i];
+        dayNameDiv.classList.add("day-name");
+        calendar.appendChild(dayNameDiv);
+    }
+}
+
+function buildCalendar(year, month) {
+    calendar.innerHTML = "";
+    displayDayNames();
+    monthYear.textContent = new Date(year, month).toLocaleString("default", { month: "long", year: "numeric" });
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    for (let i = 0; i < firstDay; i++) {
+        const emptyDiv = document.createElement("div");
+        calendar.appendChild(emptyDiv);
+    }
+    for (let day = 1; day <= daysInMonth; day++) {
+        const dayDiv = document.createElement("div");
+        dayDiv.textContent = day;
+        dayDiv.classList.add("date");
+        if (selectedDate === `${year}-${String(month + 1).padStart(2,'0')}-${String(day).padStart(2,'0')}`) {
+            dayDiv.classList.add("selected");
+        }
+        dayDiv.addEventListener("click", function() {
+            selectDate(year, month, day, dayDiv);
+        });
+        calendar.appendChild(dayDiv);
+    }
+}
+
+function selectDate(year, month, day, dayDiv) {
+    Array.from(calendar.children).forEach(function(div) {
+        div.classList.remove("selected");
+    });
+    dayDiv.classList.add("selected");
+    selectedDate = `${year}-${String(month + 1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    selectedDateSpan.textContent = selectedDate;
+    selectedDateTitle.style.display = "block";
+    eventForm.style.display = "block";
+    loadEvents();
+}
+
+function loadEvents() {
+  eventsUl.innerHTML = "";
+  if (!selectedDate) return;
+  const events = JSON.parse(localStorage.getItem(selectedDate)) || [];
+
+  for (let i = 0; i < events.length; i++) {
+    const li = document.createElement("li");
+    if (events[i].done) li.classList.add("done");
+
+    // Checkbox
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.checked = events[i].done;
+
+    checkbox.addEventListener("change", function () {
+      events[i].done = checkbox.checked;
+      localStorage.setItem(selectedDate, JSON.stringify(events));
+      li.classList.toggle("done");
+    });
+
+    // Label
+    const label = document.createElement("label");
+    label.textContent = `${events[i].time} - ${events[i].name}`;
+
+    // ✏️ EDIT BUTTON
+    const editBtn = document.createElement("button");
+    editBtn.textContent = "✏️";
+    editBtn.style.marginLeft = "10px";
+
+    editBtn.addEventListener("click", () => {
+      const newName = prompt("Edit event name:", events[i].name);
+      const newTime = prompt("Edit event time:", events[i].time);
+
+      if (newName && newTime) {
+        events[i].name = newName.trim();
+        events[i].time = newTime.trim();
+        localStorage.setItem(selectedDate, JSON.stringify(events));
+        loadEvents();
+      }
+    });
+
+    // ❌ DELETE BUTTON
+    const deleteBtn = document.createElement("button");
+    deleteBtn.textContent = "❌";
+    deleteBtn.style.marginLeft = "5px";
+
+    deleteBtn.addEventListener("click", () => {
+      events.splice(i, 1);
+      localStorage.setItem(selectedDate, JSON.stringify(events));
+      loadEvents();
+    });
+
+    li.appendChild(checkbox);
+    li.appendChild(label);
+    li.appendChild(editBtn);
+    li.appendChild(deleteBtn);
+
+    eventsUl.appendChild(li);
+  }
+}
+eventForm.addEventListener("submit", function(e) {
+  e.preventDefault();
+
+  const name = document.getElementById("event-name").value.trim();
+  const time = document.getElementById("event-time").value.trim();
+
+  if (!name || !time) {
+    alert("Please enter both event name and time.");
+    return;
+  }
+
+  const events = JSON.parse(localStorage.getItem(selectedDate)) || [];
+
+  events.push({
+    name: name,
+    time: time,
+    done: false
+  });
+
+  localStorage.setItem(selectedDate, JSON.stringify(events));
+
+  document.getElementById("event-name").value = "";
+  document.getElementById("event-time").value = "";
+
+  loadEvents();
+});
+prevMonthBtn.addEventListener("click", function() {
+    currentMonth--;
+    if (currentMonth < 0) {
+        currentMonth = 11;
+        currentYear--;
+    }
+    buildCalendar(currentYear, currentMonth);
+    selectedDate = null;
+    selectedDateTitle.style.display = "none";
+    eventForm.style.display = "none";
+    eventsUl.innerHTML = "";
+});
+
+nextMonthBtn.addEventListener("click", function() {
+    currentMonth++;
+    if (currentMonth > 11) {
+        currentMonth = 0;
+        currentYear++;
+    }
+    buildCalendar(currentYear, currentMonth);
+    selectedDate = null;
+    selectedDateTitle.style.display = "none";
+    eventForm.style.display = "none";
+    eventsUl.innerHTML = "";
+});
+
+const now = new Date();
+currentYear = now.getFullYear();
+currentMonth = now.getMonth();
+buildCalendar(currentYear, currentMonth);
+</script>
+
+</body>
+</html>

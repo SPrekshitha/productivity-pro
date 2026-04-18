@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>About</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav>
+    <h2>Productivity Pro</h2>
+    <ul>
+        <li><a class="nav-link" href="home.html">Home</a></li>
+        <li><a class="nav-link" href="calendar.html">Calendar</a></li>
+        <li><a class="nav-link" href="todo.html">To-Do List</a></li>
+        <li><a class="nav-link" href="about.html">About</a></li>
+    </ul>
+    <button id="theme-toggle">🌙</button>
+</nav>
+<section class="about-intro">
+    <h1>About This Project</h1>
+    <p>
+    Productivity Pro is a web-based productivity application designed to help users manage daily tasks and events efficiently.
+    It includes a to-do list and an interactive calendar with CRUD functionality and search features.
+    </p>
+</section>
+
+<section class="about-developers">
+    <h2>Meet the Developers</h2>
+
+    <p>
+    This project was initially developed as a team mini-project and later enhanced individually with additional features such as CRUD operations, search functionality, and UI improvements.
+    </p>
+
+    <div class="cards-container">
+        <div class="contact-card">
+            <h3>Sontam Prekshitha</h3>
+            <p>Email: sontamprekshitha@gmail.com</p>
+            <p>USN: 1MS24CI125</p>
+        </div>
+
+        <div class="contact-card">
+            <h3>Shreya Mishra</h3>
+            <p>Email:  smishra2407@gmail.com</p>
+            <p>USN: 1MS24CI117</p>
+        </div>
+    </div>
+</section>
+
+<footer>
+    <p>&copy; 2025 Productivity Pro</p>
+</footer>
+
+<script>
+const themeToggle = document.getElementById("theme-toggle");
+themeToggle.addEventListener("click", function() {
+    document.body.classList.toggle("dark-theme");
+    localStorage.setItem("theme", document.body.classList.contains("dark-theme") ? "dark" : "light");
+});
+if (localStorage.getItem("theme") === "dark") {
+    document.body.classList.add("dark-theme");
+}
+document.querySelectorAll(".nav-link").forEach(function(link) {
+    if (link.href === window.location.href) {
+        link.classList.add("active");
+    }
+});
+</script>
+
+</body>
+</html>

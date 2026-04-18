@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Productivity Pro</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<nav>
+  <h2>Productivity Pro</h2>
+  <ul>
+    <li><a class="nav-link" href="home.html">Home</a></li>
+    <li><a class="nav-link" href="calendar.html">Calendar</a></li>
+    <li><a class="nav-link" href="todo.html">To-Do List</a></li>
+    <li><a class="nav-link" href="about.html">About</a></li>
+  </ul>
+  <button id="theme-toggle">🌙</button>
+</nav>
+
+<main>
+  <!-- To-Do List Section -->
+  <section>
+  <h1>To-Do List</h1>
+
+  <!-- 🔍 SEARCH BOX (add this line) -->
+  <input type="text" id="search-input" placeholder="Search tasks..." />
+
+  <form id="todo-form">
+    <input type="text" id="todo-input" placeholder="Add a new task" />
+    <button type="submit">Add Task</button>
+  </form>
+
+  <ul id="todo-list"></ul>
+</section>
+
+  <!-- Productivity Tips Section -->
+  <section class="tips-section">
+    <h2>Productivity Tips</h2>
+    <div id="tips-container" class="cards-container"></div>
+  </section>
+</main>
+
+<footer>
+  <p>&copy; 2025 Productivity Pro</p>
+</footer>
+
+<script>
+  // Theme toggle
+  const themeToggle = document.getElementById("theme-toggle");
+  themeToggle.addEventListener("click", () => {
+    document.body.classList.toggle("dark-theme");
+    localStorage.setItem(
+      "theme",
+      document.body.classList.contains("dark-theme") ? "dark" : "light"
+    );
+  });
+  if (localStorage.getItem("theme") === "dark") {
+    document.body.classList.add("dark-theme");
+  }
+
+  // Highlight active nav link
+  document.querySelectorAll(".nav-link").forEach((link) => {
+    if (link.href === window.location.href) {
+      link.classList.add("active");
+    }
+  });
+
+  // To-Do List functionality
+  const todoForm = document.getElementById("todo-form");
+  const todoInput = document.getElementById("todo-input");
+  const todoList = document.getElementById("todo-list");
+  const searchInput = document.getElementById("search-input");
+  function loadTodos() {
+  todoList.innerHTML = "";
+  const todos = JSON.parse(localStorage.getItem("todos")) || [];
+  const searchText = searchInput.value.toLowerCase();
+
+  todos.forEach((todo, i) => {
+
+    // 🔍 SEARCH FILTER
+    if (!todo.text.toLowerCase().includes(searchText)) return;
+
+    const li = document.createElement("li");
+    if (todo.done) li.classList.add("done");
+
+    // Checkbox
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.checked = todo.done;
+
+    checkbox.addEventListener("change", () => {
+      todos[i].done = checkbox.checked;
+      localStorage.setItem("todos", JSON.stringify(todos));
+      loadTodos();
+    });
+
+    // Label
+    const label = document.createElement("label");
+    label.textContent = todo.text;
+
+    // ✏️ EDIT
+    const editBtn = document.createElement("button");
+    editBtn.textContent = "✏️";
+    editBtn.style.marginLeft = "10px";
+
+    editBtn.addEventListener("click", () => {
+      const newText = prompt("Edit your task:", todo.text);
+      if (newText && newText.trim() !== "") {
+        todos[i].text = newText.trim();
+        localStorage.setItem("todos", JSON.stringify(todos));
+        loadTodos();
+      }
+    });
+
+    // ❌ DELETE
+    const deleteBtn = document.createElement("button");
+    deleteBtn.textContent = "❌";
+    deleteBtn.style.marginLeft = "5px";
+
+    deleteBtn.addEventListener("click", () => {
+      todos.splice(i, 1);
+      localStorage.setItem("todos", JSON.stringify(todos));
+      loadTodos();
+    });
+
+    li.appendChild(checkbox);
+    li.appendChild(label);
+    li.appendChild(editBtn);
+    li.appendChild(deleteBtn);
+
+    todoList.appendChild(li);
+  });
+}
+  todoForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const text = todoInput.value.trim();
+    if (!text) return;
+    const todos = JSON.parse(localStorage.getItem("todos")) || [];
+    todos.push({ text, done: false });
+    localStorage.setItem("todos", JSON.stringify(todos));
+    todoInput.value = "";
+    loadTodos();
+  });
+  searchInput.addEventListener("input", loadTodos);
+  loadTodos();
+
+  // Productivity Tips (Dynamic Content)
+  const tips = [
+    "Break big tasks into smaller ones",
+    "Use the Pomodoro technique for focus",
+    "Prioritize tasks by importance",
+    "Take short breaks to refresh your mind",
+    "Review your tasks at the end of the day",
+  ];
+  const tipsContainer = document.getElementById("tips-container");
+  tips.forEach((tip) => {
+    const card = document.createElement("div");
+    card.classList.add("contact-card");
+    card.textContent = tip;
+    tipsContainer.appendChild(card);
+  });
+</script>
+
+</body>
+</html>
